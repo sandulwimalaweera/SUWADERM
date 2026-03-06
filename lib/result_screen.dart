@@ -15,95 +15,43 @@ class ResultScreen extends StatelessWidget {
     this.answers,
   });
 
-  /// Build Google search query
+  /// Build search query
   String buildSearchQuery(String disease) {
     List<String> keywords = [disease];
 
     if (answers != null) {
       answers!.forEach((question, answer) {
-        if (answer) {
-          keywords.add(question);
-        }
+        if (answer) keywords.add(question);
       });
     }
 
-    keywords.add("skin condition explanation symptoms treatment");
+    keywords.add("skin disease explanation symptoms");
 
     return keywords.join(" ");
   }
 
-  /// Open Google Search
+  /// Open browser
   Future<void> openSearch(String query) async {
     final Uri url = Uri.parse(
         "https://www.google.com/search?q=${Uri.encodeComponent(query)}");
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   /// Treatment search
   Future<void> openTreatment(String disease) async {
     final Uri url = Uri.parse(
-        "https://www.google.com/search?q=${Uri.encodeComponent("$disease skin treatment causes remedies")}");
+        "https://www.google.com/search?q=${Uri.encodeComponent("$disease skin treatment remedies")}");
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
-  /// Explanation popup
-  void showExplanation(BuildContext context, String disease) {
-    List<String> positiveSymptoms = [];
+  /// Nearby hospital search
+  Future<void> openHospitals() async {
+    final Uri url = Uri.parse(
+        "https://www.google.com/maps/search/dermatology+clinic+near+me");
 
-    if (answers != null) {
-      answers!.forEach((question, answer) {
-        if (answer) positiveSymptoms.add(question);
-      });
-    }
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Text("Why this result?"),
-        content: positiveSymptoms.isEmpty
-            ? const Text(
-                "The prediction was based mainly on image analysis. No symptoms were confirmed in the questionnaire.",
-                style: TextStyle(fontSize: 14),
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "The system predicted \"$disease\" because the following symptoms were confirmed:",
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(height: 10),
-                  ...positiveSymptoms.map(
-                    (s) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 3),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.check, color: Colors.green),
-                          const SizedBox(width: 6),
-                          Expanded(child: Text(s)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-        actions: [
-          TextButton(
-            child: const Text("Close"),
-            onPressed: () => Navigator.pop(context),
-          )
-        ],
-      ),
-    );
+    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   @override
@@ -115,7 +63,7 @@ class ResultScreen extends StatelessWidget {
       backgroundColor: Colors.grey.shade100,
       body: Stack(
         children: [
-          /// TOP CURVE
+          /// TOP PURPLE CURVE
           Container(
             height: 240,
             decoration: const BoxDecoration(
@@ -159,12 +107,13 @@ class ResultScreen extends StatelessWidget {
 
                   const SizedBox(height: 20),
 
-                  /// DISEASE
+                  /// DISEASE NAME
                   Text(
                     disease,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -173,28 +122,15 @@ class ResultScreen extends StatelessWidget {
 
                   Text(
                     "Confidence: ${(confidence * 100).toStringAsFixed(1)}%",
-                    style: const TextStyle(color: Colors.grey),
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                    ),
                   ),
 
                   const SizedBox(height: 30),
 
-                  /// BUTTON 1 — EXPLANATION
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.info),
-                      label: const Text("Why This Result?"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () => showExplanation(context, disease),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  /// BUTTON 2 — LEARN MORE
+                  /// LEARN MORE
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -202,7 +138,8 @@ class ResultScreen extends StatelessWidget {
                       label: const Text("Learn More"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.purple,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       onPressed: () {
                         String query = buildSearchQuery(disease);
@@ -213,7 +150,7 @@ class ResultScreen extends StatelessWidget {
 
                   const SizedBox(height: 12),
 
-                  /// BUTTON 3 — TREATMENTS
+                  /// TREATMENTS
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -221,10 +158,30 @@ class ResultScreen extends StatelessWidget {
                       label: const Text("Recommended Treatments"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       onPressed: () {
                         openTreatment(disease);
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  /// NEARBY HOSPITALS
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.local_hospital),
+                      label: const Text("Nearby Hospitals"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: () {
+                        openHospitals();
                       },
                     ),
                   ),
@@ -237,6 +194,10 @@ class ResultScreen extends StatelessWidget {
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.refresh),
                       label: const Text("Scan Another Image"),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
                       onPressed: () {
                         Navigator.pushAndRemoveUntil(
                           context,
