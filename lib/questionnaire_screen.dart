@@ -34,11 +34,10 @@ class QuestionnaireScreen extends StatefulWidget {
 
 class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
   late Map<String, QuestionNode> tree;
-
   String currentNodeKey = "q1";
   double updatedConfidence = 0.0;
 
-  /// ⭐ STORE USER ANSWERS
+  /// store answers
   Map<String, bool> answers = {};
 
   @override
@@ -47,8 +46,6 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     updatedConfidence = widget.result['topConfidence'];
     tree = _getDecisionTree(widget.result['topLabel']);
   }
-
-  /// ===================== DECISION TREES =====================
 
   Map<String, QuestionNode> _getDecisionTree(String disease) {
     switch (disease) {
@@ -92,68 +89,6 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
               noImpact: 0.02),
         };
 
-      case "BA- cellulitis":
-        return {
-          "q1": QuestionNode(
-              question: "Is the skin swollen?",
-              yesNext: "q2",
-              noNext: null,
-              yesImpact: 0.09,
-              noImpact: -0.07),
-          "q2": QuestionNode(
-              question: "Is the area painful?",
-              yesNext: "q3",
-              noNext: "q4",
-              yesImpact: 0.08,
-              noImpact: -0.05),
-          "q3": QuestionNode(
-              question: "Is the skin warm to touch?",
-              yesNext: "q5",
-              noNext: null,
-              yesImpact: 0.07,
-              noImpact: -0.04),
-          "q4": QuestionNode(
-              question: "Is redness spreading rapidly?",
-              yesNext: null,
-              noNext: null,
-              yesImpact: 0.06,
-              noImpact: -0.04),
-          "q5": QuestionNode(
-              question: "Do you have fever?",
-              yesNext: null,
-              noNext: null,
-              yesImpact: 0.07,
-              noImpact: -0.05),
-        };
-
-      case "FU-athlete-foot":
-        return {
-          "q1": QuestionNode(
-              question: "Is there itching between toes?",
-              yesNext: "q2",
-              noNext: null,
-              yesImpact: 0.09,
-              noImpact: -0.07),
-          "q2": QuestionNode(
-              question: "Is the skin peeling?",
-              yesNext: "q3",
-              noNext: null,
-              yesImpact: 0.08,
-              noImpact: -0.05),
-          "q3": QuestionNode(
-              question: "Is there burning sensation?",
-              yesNext: "q4",
-              noNext: null,
-              yesImpact: 0.07,
-              noImpact: -0.04),
-          "q4": QuestionNode(
-              question: "Is the skin cracked?",
-              yesNext: null,
-              noNext: null,
-              yesImpact: 0.06,
-              noImpact: -0.03),
-        };
-
       default:
         return {
           "q1": QuestionNode(
@@ -166,16 +101,12 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     }
   }
 
-  /// ===================== HANDLE ANSWER =====================
-
   void _answer(bool isYes) {
     final node = tree[currentNodeKey]!;
 
-    /// ⭐ STORE ANSWER
     answers[node.question] = isYes;
 
     updatedConfidence += isYes ? node.yesImpact : node.noImpact;
-
     updatedConfidence = updatedConfidence.clamp(0.0, 1.0);
 
     final nextKey = isYes ? node.yesNext : node.noNext;
@@ -188,8 +119,6 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
       });
     }
   }
-
-  /// ===================== FINISH QUESTIONNAIRE =====================
 
   void _finish() {
     List<dynamic> predictions = List.from(widget.result['allPredictions']);
@@ -218,13 +147,11 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
         builder: (_) => ResultScreen(
           image: widget.image,
           result: updatedResult,
-          answers: answers, // ⭐ PASS ANSWERS
+          answers: answers,
         ),
       ),
     );
   }
-
-  /// ===================== UI =====================
 
   @override
   Widget build(BuildContext context) {
@@ -252,6 +179,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 40),
+
                   const Text(
                     "Symptom Confirmation",
                     style: TextStyle(
@@ -260,19 +188,49 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
                       color: Colors.white,
                     ),
                   ),
+
                   const SizedBox(height: 40),
-                  LinearProgressIndicator(
-                    value: updatedConfidence,
-                    backgroundColor: Colors.grey.shade300,
-                    color: Colors.white,
+
+                  /// Improved progress bar
+                  Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: LinearProgressIndicator(
+                          value: updatedConfidence,
+                          minHeight: 12,
+                          backgroundColor: Colors.grey.shade300,
+                          valueColor: const AlwaysStoppedAnimation(
+                            Color(0xFFAB47BC),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Confidence ${(updatedConfidence * 100).toStringAsFixed(0)}%",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
+
                   const SizedBox(height: 60),
+
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Text(
                       node.question,
@@ -283,23 +241,30 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
+
                   const SizedBox(height: 40),
+
                   _modernButton(
                     text: "Yes",
                     color: const Color(0xFFAB47BC),
                     onTap: () => _answer(true),
                   ),
+
                   const SizedBox(height: 20),
+
                   _modernButton(
                     text: "No",
                     color: Colors.grey,
                     onTap: () => _answer(false),
                   ),
+
                   const Spacer(),
+
                   Text(
                     "Current Confidence: ${(updatedConfidence * 100).toStringAsFixed(1)}%",
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+
                   const SizedBox(height: 40),
                 ],
               ),
