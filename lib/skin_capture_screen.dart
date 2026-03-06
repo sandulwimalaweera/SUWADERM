@@ -20,6 +20,10 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
   File? _image;
   bool _loading = false;
 
+  /// Thresholds
+  final double confidenceThreshold = 0.55;
+  final double predictionGapThreshold = 0.10;
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +41,10 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
     }
   }
 
+  /// ===============================
+  /// SCAN IMAGE
+  /// ===============================
+
   Future<void> _scan() async {
     if (_image == null || _loading) return;
 
@@ -48,22 +56,58 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
 
     setState(() => _loading = false);
 
-    /// If NOT a skin image → go directly to result
-    if (result['topLabel'] == 'Not a skin image') {
+    double confidence = result['topConfidence'];
+
+    List predictions = result['allPredictions'];
+
+    double secondConfidence =
+        predictions.length > 1 ? predictions[1]['confidence'] : 0.0;
+
+    double gap = confidence - secondConfidence;
+
+    /// CASE 1 — Very low confidence
+    if (confidence < confidenceThreshold) {
+      final notSkinResult = {
+        'topLabel': 'Not a skin image',
+        'topConfidence': confidence,
+        'allPredictions': [],
+      };
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ResultScreen(
             image: _image!,
-            result: result,
-            answers: {}, // ✅ important for explanation feature
+            result: notSkinResult,
           ),
         ),
       );
+
       return;
     }
 
-    /// Otherwise go to questionnaire
+    /// CASE 2 — Model confused (likely healthy skin)
+    if (gap < predictionGapThreshold) {
+      final healthyResult = {
+        'topLabel': 'Healthy or unclear skin condition',
+        'topConfidence': confidence,
+        'allPredictions': predictions,
+      };
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ResultScreen(
+            image: _image!,
+            result: healthyResult,
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    /// CASE 3 — Real disease prediction
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -81,6 +125,10 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
     super.dispose();
   }
 
+  /// ===============================
+  /// UI
+  /// ===============================
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,7 +136,7 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
       backgroundColor: Colors.grey.shade100,
       body: Stack(
         children: [
-          /// TOP PURPLE CURVE
+          /// TOP CURVE
           Container(
             height: 250,
             width: double.infinity,
@@ -168,10 +216,7 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFD1C4E9),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.blue,
-                        width: 3,
-                      ),
+                      border: Border.all(color: Colors.blue, width: 3),
                     ),
                     child: _image == null
                         ? Column(
@@ -187,8 +232,6 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
                             borderRadius: BorderRadius.circular(20),
                             child: Image.file(
                               _image!,
-                              width: double.infinity,
-                              height: double.infinity,
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -230,7 +273,6 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        elevation: 8,
                       ),
                       child: _loading
                           ? const CircularProgressIndicator(color: Colors.white)
@@ -253,8 +295,7 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
     );
   }
 
-  // ================= DRAWER =================
-
+  /// Drawer
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
       child: Container(
@@ -276,18 +317,15 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
               const Text(
                 "Hi, User 👋",
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 40),
               _drawerItem(
                 icon: Icons.camera_alt,
                 title: "Scan",
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                onTap: () => Navigator.pop(context),
               ),
               _drawerItem(
                 icon: Icons.info_outline,
@@ -296,9 +334,7 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const AboutUsScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const AboutUsScreen()),
                   );
                 },
               ),
@@ -307,9 +343,7 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
               _drawerItem(
                 icon: Icons.logout,
                 title: "Logout",
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                onTap: () => Navigator.pop(context),
               ),
               const SizedBox(height: 20),
             ],
@@ -326,15 +360,11 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
   }) {
     return ListTile(
       leading: Icon(icon, color: Colors.white),
-      title: Text(
-        title,
-        style: const TextStyle(color: Colors.white, fontSize: 16),
-      ),
+      title: Text(title,
+          style: const TextStyle(color: Colors.white, fontSize: 16)),
       onTap: onTap,
     );
   }
-
-  // ================= BUTTON =================
 
   Widget _circleButton({
     required IconData icon,

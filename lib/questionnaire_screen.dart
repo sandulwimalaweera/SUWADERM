@@ -34,8 +34,12 @@ class QuestionnaireScreen extends StatefulWidget {
 
 class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
   late Map<String, QuestionNode> tree;
+
   String currentNodeKey = "q1";
   double updatedConfidence = 0.0;
+
+  /// ⭐ STORE USER ANSWERS
+  Map<String, bool> answers = {};
 
   @override
   void initState() {
@@ -43,6 +47,8 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     updatedConfidence = widget.result['topConfidence'];
     tree = _getDecisionTree(widget.result['topLabel']);
   }
+
+  /// ===================== DECISION TREES =====================
 
   Map<String, QuestionNode> _getDecisionTree(String disease) {
     switch (disease) {
@@ -120,34 +126,6 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
               noImpact: -0.05),
         };
 
-      case "BA-impetigo":
-        return {
-          "q1": QuestionNode(
-              question: "Are there honey-colored crusts?",
-              yesNext: "q2",
-              noNext: null,
-              yesImpact: 0.11,
-              noImpact: -0.09),
-          "q2": QuestionNode(
-              question: "Is the rash around mouth or nose?",
-              yesNext: "q3",
-              noNext: null,
-              yesImpact: 0.08,
-              noImpact: -0.05),
-          "q3": QuestionNode(
-              question: "Is there fluid or pus?",
-              yesNext: "q4",
-              noNext: null,
-              yesImpact: 0.07,
-              noImpact: -0.05),
-          "q4": QuestionNode(
-              question: "Is it itchy?",
-              yesNext: null,
-              noNext: null,
-              yesImpact: 0.05,
-              noImpact: -0.03),
-        };
-
       case "FU-athlete-foot":
         return {
           "q1": QuestionNode(
@@ -176,118 +154,6 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
               noImpact: -0.03),
         };
 
-      case "FU-nail-fungus":
-        return {
-          "q1": QuestionNode(
-              question: "Is the nail thickened?",
-              yesNext: "q2",
-              noNext: null,
-              yesImpact: 0.10,
-              noImpact: -0.08),
-          "q2": QuestionNode(
-              question: "Is the nail discolored?",
-              yesNext: "q3",
-              noNext: null,
-              yesImpact: 0.09,
-              noImpact: -0.06),
-          "q3": QuestionNode(
-              question: "Is the nail brittle?",
-              yesNext: "q4",
-              noNext: null,
-              yesImpact: 0.07,
-              noImpact: -0.05),
-          "q4": QuestionNode(
-              question: "Is nail shape distorted?",
-              yesNext: null,
-              noNext: null,
-              yesImpact: 0.06,
-              noImpact: -0.04),
-        };
-
-      case "PA-cutaneous-larva-migrans":
-        return {
-          "q1": QuestionNode(
-              question: "Is there a snake-like rash?",
-              yesNext: "q2",
-              noNext: null,
-              yesImpact: 0.12,
-              noImpact: -0.10),
-          "q2": QuestionNode(
-              question: "Is the rash extremely itchy?",
-              yesNext: "q3",
-              noNext: null,
-              yesImpact: 0.09,
-              noImpact: -0.06),
-          "q3": QuestionNode(
-              question: "Did it appear after soil/sand contact?",
-              yesNext: "q4",
-              noNext: null,
-              yesImpact: 0.08,
-              noImpact: -0.05),
-          "q4": QuestionNode(
-              question: "Is the rash slowly moving?",
-              yesNext: null,
-              noNext: null,
-              yesImpact: 0.07,
-              noImpact: -0.05),
-        };
-
-      case "VI-chickenpox":
-        return {
-          "q1": QuestionNode(
-              question: "Are there fluid-filled blisters?",
-              yesNext: "q2",
-              noNext: null,
-              yesImpact: 0.11,
-              noImpact: -0.09),
-          "q2": QuestionNode(
-              question: "Do you have fever?",
-              yesNext: "q3",
-              noNext: null,
-              yesImpact: 0.08,
-              noImpact: -0.05),
-          "q3": QuestionNode(
-              question: "Are rashes in multiple body areas?",
-              yesNext: "q4",
-              noNext: null,
-              yesImpact: 0.07,
-              noImpact: -0.05),
-          "q4": QuestionNode(
-              question: "Are the spots itchy?",
-              yesNext: null,
-              noNext: null,
-              yesImpact: 0.06,
-              noImpact: -0.04),
-        };
-
-      case "VI-shingles":
-        return {
-          "q1": QuestionNode(
-              question: "Is the rash painful?",
-              yesNext: "q2",
-              noNext: null,
-              yesImpact: 0.10,
-              noImpact: -0.08),
-          "q2": QuestionNode(
-              question: "Is it on one side of the body?",
-              yesNext: "q3",
-              noNext: null,
-              yesImpact: 0.09,
-              noImpact: -0.06),
-          "q3": QuestionNode(
-              question: "Did burning pain start before rash?",
-              yesNext: "q4",
-              noNext: null,
-              yesImpact: 0.08,
-              noImpact: -0.05),
-          "q4": QuestionNode(
-              question: "Are there blisters?",
-              yesNext: null,
-              noNext: null,
-              yesImpact: 0.07,
-              noImpact: -0.05),
-        };
-
       default:
         return {
           "q1": QuestionNode(
@@ -300,8 +166,13 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     }
   }
 
+  /// ===================== HANDLE ANSWER =====================
+
   void _answer(bool isYes) {
     final node = tree[currentNodeKey]!;
+
+    /// ⭐ STORE ANSWER
+    answers[node.question] = isYes;
 
     updatedConfidence += isYes ? node.yesImpact : node.noImpact;
 
@@ -317,6 +188,8 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
       });
     }
   }
+
+  /// ===================== FINISH QUESTIONNAIRE =====================
 
   void _finish() {
     List<dynamic> predictions = List.from(widget.result['allPredictions']);
@@ -342,11 +215,16 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            ResultScreen(image: widget.image, result: updatedResult),
+        builder: (_) => ResultScreen(
+          image: widget.image,
+          result: updatedResult,
+          answers: answers, // ⭐ PASS ANSWERS
+        ),
       ),
     );
   }
+
+  /// ===================== UI =====================
 
   @override
   Widget build(BuildContext context) {
@@ -395,13 +273,6 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
                     ),
                     child: Text(
                       node.question,

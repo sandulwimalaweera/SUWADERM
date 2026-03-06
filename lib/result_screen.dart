@@ -15,7 +15,7 @@ class ResultScreen extends StatelessWidget {
     this.answers,
   });
 
-  /// Build search query
+  /// Build Google search query
   String buildSearchQuery(String disease) {
     List<String> keywords = [disease];
 
@@ -59,11 +59,14 @@ class ResultScreen extends StatelessWidget {
     final String disease = result['topLabel'];
     final double confidence = result['topConfidence'];
 
+    /// Detect if image is skin or not
+    final bool isSkinImage = disease != "Not a skin image";
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       body: Stack(
         children: [
-          /// TOP PURPLE CURVE
+          /// TOP CURVE
           Container(
             height: 240,
             decoration: const BoxDecoration(
@@ -128,67 +131,84 @@ class ResultScreen extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 30),
-
-                  /// LEARN MORE
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.search),
-                      label: const Text("Learn More"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                  /// WARNING IF NOT SKIN
+                  if (!isSkinImage)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 12),
+                      child: Text(
+                        "This image does not appear to be a skin condition. Please upload a clear skin image.",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      onPressed: () {
-                        String query = buildSearchQuery(disease);
-                        openSearch(query);
-                      },
                     ),
-                  ),
 
-                  const SizedBox(height: 12),
+                  /// SHOW BUTTONS ONLY IF SKIN IMAGE
+                  if (isSkinImage) ...[
+                    const SizedBox(height: 30),
 
-                  /// TREATMENTS
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.medical_services),
-                      label: const Text("Recommended Treatments"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                    /// LEARN MORE
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.search),
+                        label: const Text("Learn More"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.purple,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () {
+                          String query = buildSearchQuery(disease);
+                          openSearch(query);
+                        },
                       ),
-                      onPressed: () {
-                        openTreatment(disease);
-                      },
                     ),
-                  ),
 
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                  /// NEARBY HOSPITALS
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.local_hospital),
-                      label: const Text("Nearby Hospitals"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                    /// TREATMENTS
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.medical_services),
+                        label: const Text("Recommended Treatments"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () {
+                          openTreatment(disease);
+                        },
                       ),
-                      onPressed: () {
-                        openHospitals();
-                      },
                     ),
-                  ),
+
+                    const SizedBox(height: 12),
+
+                    /// NEARBY HOSPITALS
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.local_hospital),
+                        label: const Text("Nearby Hospitals"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () {
+                          openHospitals();
+                        },
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 20),
 
-                  /// SCAN AGAIN
+                  /// SCAN AGAIN BUTTON
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
