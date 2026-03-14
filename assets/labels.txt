@@ -1,8 +1,8 @@
-BA- cellulitis
-BA-impetigo
-FU-athlete-foot
-FU-nail-fungus
-FU-ringworm
-PA-cutaneous-larva-migrans
-VI-chickenpox
-VI-shingles
+Cellulitis
+Impetigo
+Athlete’s Foot
+Nail Fungus
+Ringworm
+Cutaneous Larva Migrans
+Chickenpox
+Shingles

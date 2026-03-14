@@ -15,6 +15,38 @@ class ResultScreen extends StatelessWidget {
     this.answers,
   });
 
+  /// Disease descriptions
+  String getDiseaseDescription(String disease) {
+    switch (disease) {
+      case "Cellulitis":
+        return "Cellulitis is a bacterial skin infection that causes redness, swelling, warmth and tenderness in the affected area.";
+
+      case "Impetigo":
+        return "Impetigo is a contagious bacterial skin infection that causes red sores that burst and form yellowish crusts.";
+
+      case "Athlete’s Foot":
+        return "Athlete’s Foot is a fungal infection usually found between the toes causing itching, burning and cracked skin.";
+
+      case "Nail Fungus":
+        return "Nail fungus is a fungal infection that makes nails thick, brittle and discolored.";
+
+      case "Ringworm":
+        return "Ringworm is a common fungal infection that appears as a circular red rash with clearer skin in the center.";
+
+      case "Cutaneous Larva Migrans":
+        return "Cutaneous Larva Migrans is a parasitic infection causing itchy winding red tracks on the skin.";
+
+      case "Chickenpox":
+        return "Chickenpox is a viral infection that causes itchy red spots and fluid-filled blisters across the body.";
+
+      case "Shingles":
+        return "Shingles is a viral infection that causes a painful rash with blisters, usually appearing on one side of the body.";
+
+      default:
+        return "A skin condition has been detected. Please consult a medical professional for confirmation.";
+    }
+  }
+
   /// Build Google search query
   String buildSearchQuery(String disease) {
     List<String> keywords = [disease];
@@ -46,7 +78,7 @@ class ResultScreen extends StatelessWidget {
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
-  /// Nearby hospital search
+  /// Nearby hospitals
   Future<void> openHospitals() async {
     final Uri url = Uri.parse(
         "https://www.google.com/maps/search/dermatology+clinic+near+me");
@@ -59,14 +91,13 @@ class ResultScreen extends StatelessWidget {
     final String disease = result['topLabel'];
     final double confidence = result['topConfidence'];
 
-    /// Detect if image is skin or not
     final bool isSkinImage = disease != "Not a skin image";
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       body: Stack(
         children: [
-          /// TOP CURVE
+          /// TOP HEADER
           Container(
             height: 240,
             decoration: const BoxDecoration(
@@ -123,11 +154,27 @@ class ResultScreen extends StatelessWidget {
 
                   const SizedBox(height: 8),
 
+                  /// CONFIDENCE
                   Text(
                     "Confidence: ${(confidence * 100).toStringAsFixed(1)}%",
                     style: const TextStyle(
                       color: Colors.black87,
                       fontSize: 16,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  /// DESCRIPTION
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Text(
+                      getDiseaseDescription(disease),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
                     ),
                   ),
 
@@ -145,7 +192,6 @@ class ResultScreen extends StatelessWidget {
                       ),
                     ),
 
-                  /// SHOW BUTTONS ONLY IF SKIN IMAGE
                   if (isSkinImage) ...[
                     const SizedBox(height: 30),
 
@@ -188,7 +234,7 @@ class ResultScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    /// NEARBY HOSPITALS
+                    /// HOSPITALS
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -208,7 +254,7 @@ class ResultScreen extends StatelessWidget {
 
                   const SizedBox(height: 20),
 
-                  /// SCAN AGAIN BUTTON
+                  /// SCAN AGAIN
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
