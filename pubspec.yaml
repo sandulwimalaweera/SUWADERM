@@ -22,16 +22,16 @@ dependencies:
   # 🧠 TensorFlow Lite model
   tflite_flutter: ^0.12.1
 
-  # 🌐 Open external links (Google search / Maps)
+  # 🌐 Open external links
   url_launcher: ^6.3.0
 
-  # ✨ Better fonts
+  # ✨ Fonts
   google_fonts: ^6.2.1
 
   # 🎬 Animations
   lottie: ^3.1.0
 
-  # 💾 Store data locally (history, answers)
+  # 💾 Local storage
   shared_preferences: ^2.3.0
 
 dev_dependencies:
@@ -44,5 +44,5 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/skin_disease_model_finetuned.tflite
+    - assets/skin_disease_model_9class.tflite
     - assets/labels.txt

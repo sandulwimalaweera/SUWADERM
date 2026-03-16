@@ -13,7 +13,7 @@ class SkinDiseaseClassifier {
     if (_interpreter != null) return;
 
     _interpreter = await Interpreter.fromAsset(
-      'assets/skin_disease_model_finetuned.tflite',
+      'assets/skin_disease_model_9class.tflite',
       options: InterpreterOptions()..threads = 2,
     );
 

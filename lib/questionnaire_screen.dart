@@ -49,40 +49,223 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
   void initState() {
     super.initState();
 
+    final disease = widget.result['topLabel'];
+
+    /// Skip questionnaire for healthy or invalid image
+    if (disease == "Healthy Skin" || disease == "Not a skin image") {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ResultScreen(
+              image: widget.image,
+              result: widget.result,
+            ),
+          ),
+        );
+      });
+      return;
+    }
+
     updatedConfidence = widget.result['topConfidence'];
 
-    tree = _getDecisionTree(widget.result['topLabel']);
+    tree = _getDecisionTree(disease);
 
     totalQuestions = tree.length;
   }
 
   Map<String, QuestionNode> _getDecisionTree(String disease) {
     switch (disease) {
-      case "FU-ringworm":
+      /// CELLULITIS
+      case "Cellulitis":
         return {
           "q1": QuestionNode(
-              question: "Is the rash circular or ring shaped?",
+              question: "Is the skin red and swollen?",
               yesNext: "q2",
               noNext: "q3",
               yesImpact: 0.10,
               noImpact: -0.05),
           "q2": QuestionNode(
-              question: "Does the rash have a raised or scaly border?",
+              question: "Does the area feel warm to the touch?",
               yesNext: "q4",
               noNext: "q5",
               yesImpact: 0.08,
-              noImpact: -0.04),
+              noImpact: -0.03),
           "q3": QuestionNode(
-              question: "Is the rash spreading slowly?",
+              question: "Is the skin painful or tender?",
               yesNext: "q5",
               noNext: "q4",
               yesImpact: 0.05,
               noImpact: -0.03),
           "q4": QuestionNode(
+              question: "Is the redness spreading?",
+              yesNext: "q6",
+              noNext: "q6",
+              yesImpact: 0.05,
+              noImpact: -0.02),
+          "q5": QuestionNode(
+              question: "Do you have swelling in the area?",
+              yesNext: "q6",
+              noNext: "q6",
+              yesImpact: 0.04,
+              noImpact: -0.02),
+          "q6": QuestionNode(
+              question: "Do you have fever or chills?",
+              yesNext: null,
+              noNext: null,
+              yesImpact: 0.04,
+              noImpact: -0.02),
+        };
+
+      /// IMPETIGO
+      case "Impetigo":
+        return {
+          "q1": QuestionNode(
+              question: "Are there red sores or blisters?",
+              yesNext: "q2",
+              noNext: "q3",
+              yesImpact: 0.10,
+              noImpact: -0.05),
+          "q2": QuestionNode(
+              question: "Do the sores form yellow crusts?",
+              yesNext: "q4",
+              noNext: "q5",
+              yesImpact: 0.09,
+              noImpact: -0.04),
+          "q3": QuestionNode(
+              question: "Are the sores around the mouth or nose?",
+              yesNext: "q5",
+              noNext: "q4",
+              yesImpact: 0.05,
+              noImpact: -0.03),
+          "q4": QuestionNode(
+              question: "Do the sores spread when scratched?",
+              yesNext: "q6",
+              noNext: "q6",
+              yesImpact: 0.05,
+              noImpact: -0.02),
+          "q5": QuestionNode(
               question: "Is the affected area itchy?",
               yesNext: "q6",
               noNext: "q6",
-              yesImpact: 0.06,
+              yesImpact: 0.04,
+              noImpact: -0.02),
+          "q6": QuestionNode(
+              question: "Did the sores start as small blisters?",
+              yesNext: null,
+              noNext: null,
+              yesImpact: 0.04,
+              noImpact: -0.02),
+        };
+
+      /// ATHLETE'S FOOT
+      case "Athlete’s Foot":
+        return {
+          "q1": QuestionNode(
+              question: "Is the skin between your toes itchy?",
+              yesNext: "q2",
+              noNext: "q3",
+              yesImpact: 0.10,
+              noImpact: -0.05),
+          "q2": QuestionNode(
+              question: "Is the skin cracked or peeling?",
+              yesNext: "q4",
+              noNext: "q5",
+              yesImpact: 0.08,
+              noImpact: -0.04),
+          "q3": QuestionNode(
+              question: "Is there redness between the toes?",
+              yesNext: "q5",
+              noNext: "q4",
+              yesImpact: 0.05,
+              noImpact: -0.03),
+          "q4": QuestionNode(
+              question: "Do you feel burning or stinging?",
+              yesNext: "q6",
+              noNext: "q6",
+              yesImpact: 0.05,
+              noImpact: -0.02),
+          "q5": QuestionNode(
+              question: "Is the skin flaky or dry?",
+              yesNext: "q6",
+              noNext: "q6",
+              yesImpact: 0.04,
+              noImpact: -0.02),
+          "q6": QuestionNode(
+              question: "Does itching worsen after removing shoes?",
+              yesNext: null,
+              noNext: null,
+              yesImpact: 0.04,
+              noImpact: -0.02),
+        };
+
+      /// NAIL FUNGUS
+      case "Nail Fungus":
+        return {
+          "q1": QuestionNode(
+              question: "Is the nail thickened?",
+              yesNext: "q2",
+              noNext: "q3",
+              yesImpact: 0.10,
+              noImpact: -0.05),
+          "q2": QuestionNode(
+              question: "Is the nail yellow or white?",
+              yesNext: "q4",
+              noNext: "q5",
+              yesImpact: 0.08,
+              noImpact: -0.04),
+          "q3": QuestionNode(
+              question: "Is the nail brittle or crumbling?",
+              yesNext: "q5",
+              noNext: "q4",
+              yesImpact: 0.05,
+              noImpact: -0.03),
+          "q4": QuestionNode(
+              question: "Is the nail separating from the nail bed?",
+              yesNext: "q6",
+              noNext: "q6",
+              yesImpact: 0.05,
+              noImpact: -0.02),
+          "q5": QuestionNode(
+              question: "Is the nail surface rough?",
+              yesNext: "q6",
+              noNext: "q6",
+              yesImpact: 0.04,
+              noImpact: -0.02),
+          "q6": QuestionNode(
+              question: "Has the nail condition lasted more than a month?",
+              yesNext: null,
+              noNext: null,
+              yesImpact: 0.04,
+              noImpact: -0.02),
+        };
+
+      /// RINGWORM
+      case "Ringworm":
+        return {
+          "q1": QuestionNode(
+              question: "Is the rash circular or ring-shaped?",
+              yesNext: "q2",
+              noNext: "q3",
+              yesImpact: 0.10,
+              noImpact: -0.05),
+          "q2": QuestionNode(
+              question: "Does the rash have a scaly border?",
+              yesNext: "q4",
+              noNext: "q5",
+              yesImpact: 0.08,
+              noImpact: -0.04),
+          "q3": QuestionNode(
+              question: "Is the rash spreading outward?",
+              yesNext: "q5",
+              noNext: "q4",
+              yesImpact: 0.05,
+              noImpact: -0.03),
+          "q4": QuestionNode(
+              question: "Is the rash itchy?",
+              yesNext: "q6",
+              noNext: "q6",
+              yesImpact: 0.05,
               noImpact: -0.02),
           "q5": QuestionNode(
               question: "Is the skin dry or flaky?",
@@ -94,124 +277,127 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
               question: "Has the rash lasted more than one week?",
               yesNext: null,
               noNext: null,
-              yesImpact: 0.03,
+              yesImpact: 0.04,
               noImpact: -0.02),
         };
 
-      case "FU-eczema":
+      /// CUTANEOUS LARVA MIGRANS
+      case "Cutaneous Larva Migrans":
         return {
           "q1": QuestionNode(
-              question: "Is the skin very itchy?",
+              question: "Is there a snake-like rash pattern?",
               yesNext: "q2",
               noNext: "q3",
               yesImpact: 0.10,
               noImpact: -0.05),
           "q2": QuestionNode(
-              question: "Is the skin dry or cracked?",
+              question: "Is the rash very itchy?",
               yesNext: "q4",
               noNext: "q5",
               yesImpact: 0.08,
               noImpact: -0.04),
           "q3": QuestionNode(
-              question: "Is there redness or swelling?",
+              question: "Did the rash appear after walking barefoot?",
               yesNext: "q5",
               noNext: "q4",
               yesImpact: 0.05,
               noImpact: -0.03),
           "q4": QuestionNode(
-              question: "Does irritation worsen in cold weather?",
+              question: "Is the rash slowly moving across the skin?",
               yesNext: "q6",
               noNext: "q6",
               yesImpact: 0.05,
               noImpact: -0.02),
           "q5": QuestionNode(
-              question: "Do you notice dry skin patches?",
+              question: "Is the rash red and raised?",
               yesNext: "q6",
               noNext: "q6",
               yesImpact: 0.04,
               noImpact: -0.02),
           "q6": QuestionNode(
-              question: "Do symptoms appear repeatedly?",
+              question: "Is the rash on the feet or legs?",
               yesNext: null,
               noNext: null,
               yesImpact: 0.04,
               noImpact: -0.02),
         };
 
-      case "FU-psoriasis":
+      /// CHICKENPOX
+      case "Chickenpox":
         return {
           "q1": QuestionNode(
-              question: "Are there thick red patches?",
+              question: "Are there many small fluid-filled blisters?",
               yesNext: "q2",
               noNext: "q3",
               yesImpact: 0.10,
               noImpact: -0.05),
           "q2": QuestionNode(
-              question: "Are the patches covered with silvery scales?",
+              question: "Are the blisters spread across the body?",
               yesNext: "q4",
               noNext: "q5",
-              yesImpact: 0.09,
+              yesImpact: 0.08,
               noImpact: -0.04),
           "q3": QuestionNode(
-              question: "Does the skin crack or bleed?",
+              question: "Did you have fever before the rash?",
               yesNext: "q5",
               noNext: "q4",
               yesImpact: 0.05,
               noImpact: -0.03),
           "q4": QuestionNode(
-              question: "Are patches on elbows or knees?",
-              yesNext: "q6",
-              noNext: "q6",
-              yesImpact: 0.06,
-              noImpact: -0.02),
-          "q5": QuestionNode(
-              question: "Do the patches itch or burn?",
+              question: "Do the blisters itch?",
               yesNext: "q6",
               noNext: "q6",
               yesImpact: 0.05,
               noImpact: -0.02),
+          "q5": QuestionNode(
+              question: "Do blisters form scabs later?",
+              yesNext: "q6",
+              noNext: "q6",
+              yesImpact: 0.04,
+              noImpact: -0.02),
           "q6": QuestionNode(
-              question: "Have symptoms appeared repeatedly?",
+              question: "Did rash start on chest or face?",
               yesNext: null,
               noNext: null,
               yesImpact: 0.04,
               noImpact: -0.02),
         };
 
-      case "FU-acne":
+      /// SHINGLES
+      case "Shingles":
         return {
           "q1": QuestionNode(
-              question: "Are there pimples or bumps?",
+              question: "Is the rash on one side of the body?",
               yesNext: "q2",
               noNext: "q3",
               yesImpact: 0.10,
               noImpact: -0.05),
           "q2": QuestionNode(
-              question: "Are the bumps filled with pus?",
+              question: "Is the rash painful or burning?",
               yesNext: "q4",
               noNext: "q5",
               yesImpact: 0.08,
               noImpact: -0.04),
           "q3": QuestionNode(
-              question: "Are there blackheads or whiteheads?",
+              question: "Are there fluid-filled blisters?",
               yesNext: "q5",
               noNext: "q4",
-              yesImpact: 0.07,
+              yesImpact: 0.05,
               noImpact: -0.03),
           "q4": QuestionNode(
-              question: "Is the skin oily?",
+              question: "Does the rash follow a band pattern?",
               yesNext: "q6",
               noNext: "q6",
               yesImpact: 0.05,
               noImpact: -0.02),
           "q5": QuestionNode(
-              question: "Are the bumps painful when touched?",
+              question: "Is the skin sensitive to touch?",
               yesNext: "q6",
               noNext: "q6",
-              yesImpact: 0.05,
+              yesImpact: 0.04,
               noImpact: -0.02),
           "q6": QuestionNode(
-              question: "Have the pimples appeared recently?",
+              question: "Did pain start before the rash?",
               yesNext: null,
               noNext: null,
               yesImpact: 0.04,
@@ -222,40 +408,10 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
         return {
           "q1": QuestionNode(
               question: "Is the affected area itchy?",
-              yesNext: "q2",
-              noNext: "q3",
-              yesImpact: 0.05,
-              noImpact: -0.03),
-          "q2": QuestionNode(
-              question: "Is the skin red or inflamed?",
-              yesNext: "q4",
-              noNext: "q5",
-              yesImpact: 0.05,
-              noImpact: -0.02),
-          "q3": QuestionNode(
-              question: "Is there swelling?",
-              yesNext: "q5",
-              noNext: "q4",
-              yesImpact: 0.04,
-              noImpact: -0.02),
-          "q4": QuestionNode(
-              question: "Has the condition worsened recently?",
-              yesNext: "q6",
-              noNext: "q6",
-              yesImpact: 0.04,
-              noImpact: -0.02),
-          "q5": QuestionNode(
-              question: "Does the skin feel irritated or painful?",
-              yesNext: "q6",
-              noNext: "q6",
-              yesImpact: 0.04,
-              noImpact: -0.02),
-          "q6": QuestionNode(
-              question: "Has the condition lasted more than one week?",
               yesNext: null,
               noNext: null,
-              yesImpact: 0.03,
-              noImpact: -0.02),
+              yesImpact: 0.05,
+              noImpact: -0.05),
         };
     }
   }
@@ -285,32 +441,12 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
   }
 
   void _finish() {
-    List<dynamic> predictions = List.from(widget.result['allPredictions']);
-
-    String predictedDisease = widget.result['topLabel'];
-
-    for (var p in predictions) {
-      if (p['label'] == predictedDisease) {
-        p['confidence'] = updatedConfidence;
-      }
-    }
-
-    predictions.sort((a, b) =>
-        (b['confidence'] as double).compareTo(a['confidence'] as double));
-
-    final updatedResult = {
-      'topLabel': predictions.first['label'],
-      'topConfidence': predictions.first['confidence'],
-      'allPredictions': predictions.take(3).toList(),
-      'originalConfidence': widget.result['topConfidence'],
-    };
-
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => ResultScreen(
           image: widget.image,
-          result: updatedResult,
+          result: widget.result,
           answers: answers,
         ),
       ),
@@ -346,26 +482,15 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
                 children: [
                   const SizedBox(height: 40),
                   const Text(
-                    "Symptom Questionnaire",
+                    "Symptom Confirmation",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 40),
-                  LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 12,
-                    backgroundColor: Colors.grey,
-                    valueColor: const AlwaysStoppedAnimation(Colors.orange),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "$answeredQuestions questions answered",
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w600),
-                  ),
+                  const SizedBox(height: 30),
+                  LinearProgressIndicator(value: progress),
                   const SizedBox(height: 60),
                   Container(
                     width: double.infinity,
@@ -376,47 +501,24 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
                     ),
                     child: Text(
                       node.question,
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w600),
                       textAlign: TextAlign.center,
                     ),
                   ),
                   const SizedBox(height: 40),
-                  _modernButton(
-                      "Yes", const Color(0xFFAB47BC), () => _answer(true)),
+                  ElevatedButton(
+                    onPressed: () => _answer(true),
+                    child: const Text("Yes"),
+                  ),
                   const SizedBox(height: 20),
-                  _modernButton("No", Colors.grey, () => _answer(false)),
-                  const Spacer(),
-                  const SizedBox(height: 40),
+                  ElevatedButton(
+                    onPressed: () => _answer(false),
+                    child: const Text("No"),
+                  ),
                 ],
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _modernButton(String text, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
       ),
     );
   }

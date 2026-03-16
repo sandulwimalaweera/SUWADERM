@@ -15,39 +15,6 @@ class ResultScreen extends StatelessWidget {
     this.answers,
   });
 
-  /// Disease descriptions
-  String getDiseaseDescription(String disease) {
-    switch (disease) {
-      case "Cellulitis":
-        return "Cellulitis is a bacterial skin infection that causes redness, swelling, warmth and tenderness in the affected area.";
-
-      case "Impetigo":
-        return "Impetigo is a contagious bacterial skin infection that causes red sores that burst and form yellowish crusts.";
-
-      case "Athlete’s Foot":
-        return "Athlete’s Foot is a fungal infection usually found between the toes causing itching, burning and cracked skin.";
-
-      case "Nail Fungus":
-        return "Nail fungus is a fungal infection that makes nails thick, brittle and discolored.";
-
-      case "Ringworm":
-        return "Ringworm is a common fungal infection that appears as a circular red rash with clearer skin in the center.";
-
-      case "Cutaneous Larva Migrans":
-        return "Cutaneous Larva Migrans is a parasitic infection causing itchy winding red tracks on the skin.";
-
-      case "Chickenpox":
-        return "Chickenpox is a viral infection that causes itchy red spots and fluid-filled blisters across the body.";
-
-      case "Shingles":
-        return "Shingles is a viral infection that causes a painful rash with blisters, usually appearing on one side of the body.";
-
-      default:
-        return "A skin condition has been detected. Please consult a medical professional for confirmation.";
-    }
-  }
-
-  /// Build Google search query
   String buildSearchQuery(String disease) {
     List<String> keywords = [disease];
 
@@ -57,12 +24,11 @@ class ResultScreen extends StatelessWidget {
       });
     }
 
-    keywords.add("skin disease explanation symptoms");
+    keywords.add("skin disease symptoms treatment");
 
     return keywords.join(" ");
   }
 
-  /// Open browser
   Future<void> openSearch(String query) async {
     final Uri url = Uri.parse(
         "https://www.google.com/search?q=${Uri.encodeComponent(query)}");
@@ -70,15 +36,13 @@ class ResultScreen extends StatelessWidget {
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
-  /// Treatment search
   Future<void> openTreatment(String disease) async {
     final Uri url = Uri.parse(
-        "https://www.google.com/search?q=${Uri.encodeComponent("$disease skin treatment remedies")}");
+        "https://www.google.com/search?q=${Uri.encodeComponent("$disease skin treatment")}");
 
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
-  /// Nearby hospitals
   Future<void> openHospitals() async {
     final Uri url = Uri.parse(
         "https://www.google.com/maps/search/dermatology+clinic+near+me");
@@ -91,13 +55,23 @@ class ResultScreen extends StatelessWidget {
     final String disease = result['topLabel'];
     final double confidence = result['topConfidence'];
 
+    String message;
+
+    if (disease == "Not a skin image") {
+      message = "This image does not appear to be skin.";
+    } else if (disease == "Healthy Skin") {
+      message = "Your skin appears healthy. No visible skin disease detected.";
+    } else {
+      message =
+          "A skin condition has been detected. Please consult a medical professional for confirmation.";
+    }
+
     final bool isSkinImage = disease != "Not a skin image";
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       body: Stack(
         children: [
-          /// TOP HEADER
           Container(
             height: 240,
             decoration: const BoxDecoration(
@@ -109,14 +83,12 @@ class ResultScreen extends StatelessWidget {
               ),
             ),
           ),
-
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
                   const SizedBox(height: 30),
-
                   const Text(
                     "Diagnosis Result",
                     style: TextStyle(
@@ -125,10 +97,7 @@ class ResultScreen extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-
                   const SizedBox(height: 30),
-
-                  /// IMAGE
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Image.file(
@@ -138,64 +107,45 @@ class ResultScreen extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
-                  /// DISEASE NAME
                   Text(
                     disease,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
                     ),
                     textAlign: TextAlign.center,
                   ),
-
                   const SizedBox(height: 8),
-
-                  /// CONFIDENCE
                   Text(
                     "Confidence: ${(confidence * 100).toStringAsFixed(1)}%",
                     style: const TextStyle(
+                      fontSize: 16,
                       color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
                       fontSize: 16,
                     ),
                   ),
-
-                  const SizedBox(height: 12),
-
-                  /// DESCRIPTION
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Text(
-                      getDiseaseDescription(disease),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-
-                  /// WARNING IF NOT SKIN
                   if (!isSkinImage)
                     const Padding(
                       padding: EdgeInsets.only(top: 12),
                       child: Text(
-                        "This image does not appear to be a skin condition. Please upload a clear skin image.",
+                        "This image does not appear to be a skin condition.\nPlease upload a clear skin image.",
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.red,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ),
-
-                  if (isSkinImage) ...[
+                  if (isSkinImage && disease != "Healthy Skin") ...[
                     const SizedBox(height: 30),
-
-                    /// LEARN MORE
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -204,7 +154,6 @@ class ResultScreen extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.purple,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         onPressed: () {
                           String query = buildSearchQuery(disease);
@@ -212,10 +161,7 @@ class ResultScreen extends StatelessWidget {
                         },
                       ),
                     ),
-
                     const SizedBox(height: 12),
-
-                    /// TREATMENTS
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -224,17 +170,13 @@ class ResultScreen extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         onPressed: () {
                           openTreatment(disease);
                         },
                       ),
                     ),
-
                     const SizedBox(height: 12),
-
-                    /// HOSPITALS
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -243,7 +185,6 @@ class ResultScreen extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.redAccent,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         onPressed: () {
                           openHospitals();
@@ -251,10 +192,7 @@ class ResultScreen extends StatelessWidget {
                       ),
                     ),
                   ],
-
                   const SizedBox(height: 20),
-
-                  /// SCAN AGAIN
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -262,7 +200,6 @@ class ResultScreen extends StatelessWidget {
                       label: const Text("Scan Another Image"),
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       onPressed: () {
                         Navigator.pushAndRemoveUntil(
@@ -275,7 +212,6 @@ class ResultScreen extends StatelessWidget {
                       },
                     ),
                   ),
-
                   const SizedBox(height: 50),
                 ],
               ),
