@@ -15,6 +15,45 @@ class ResultScreen extends StatelessWidget {
     this.answers,
   });
 
+  /// ================= DESCRIPTIONS =================
+  String getDescription(String disease) {
+    switch (disease.trim()) {
+      case "Ringworm":
+        return "Ringworm is a fungal infection that causes a red, circular rash with clearer skin in the middle. It is often itchy and scaly.";
+
+      case "Cellulitis":
+        return "Cellulitis is a bacterial skin infection that causes redness, swelling, warmth, and pain. It can spread quickly and requires medical attention.";
+
+      case "Impetigo":
+        return "Impetigo is a contagious bacterial infection that causes red sores and yellowish crusts, commonly around the nose and mouth.";
+
+      case "Athlete’s Foot":
+        return "Athlete’s foot is a fungal infection that occurs between the toes, causing itching, burning, and cracked skin.";
+
+      case "Nail Fungus":
+        return "Nail fungus causes thick, discolored, and brittle nails. It develops gradually and may spread if untreated.";
+
+      case "Cutaneous Larva Migrans":
+        return "This is a parasitic infection that causes winding, snake-like red lines on the skin and intense itching.";
+
+      case "Chickenpox":
+        return "Chickenpox is a viral infection that causes itchy, fluid-filled blisters across the body along with fever.";
+
+      case "Shingles":
+        return "Shingles is a painful rash caused by reactivation of the chickenpox virus, usually appearing on one side of the body.";
+
+      case "Healthy Skin":
+        return "Your skin appears healthy with no visible signs of common skin diseases.";
+
+      case "Not a skin image":
+        return "The uploaded image does not appear to be skin. Please upload a clear skin image.";
+
+      default:
+        return "No description available.";
+    }
+  }
+
+  /// ================= SEARCH QUERY =================
   String buildSearchQuery(String disease) {
     List<String> keywords = [disease];
 
@@ -29,42 +68,31 @@ class ResultScreen extends StatelessWidget {
     return keywords.join(" ");
   }
 
+  /// ================= URL FUNCTIONS =================
   Future<void> openSearch(String query) async {
     final Uri url = Uri.parse(
-        "https://www.google.com/search?q=${Uri.encodeComponent(query)}");
-
+      "https://www.google.com/search?q=${Uri.encodeComponent(query)}",
+    );
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   Future<void> openTreatment(String disease) async {
     final Uri url = Uri.parse(
-        "https://www.google.com/search?q=${Uri.encodeComponent("$disease skin treatment")}");
-
+      "https://www.google.com/search?q=${Uri.encodeComponent("$disease skin treatment")}",
+    );
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   Future<void> openHospitals() async {
     final Uri url = Uri.parse(
-        "https://www.google.com/maps/search/dermatology+clinic+near+me");
-
+      "https://www.google.com/maps/search/dermatology+clinic+near+me",
+    );
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   @override
   Widget build(BuildContext context) {
     final String disease = result['topLabel'];
-    final double confidence = result['topConfidence'];
-
-    String message;
-
-    if (disease == "Not a skin image") {
-      message = "This image does not appear to be skin.";
-    } else if (disease == "Healthy Skin") {
-      message = "Your skin appears healthy. No visible skin disease detected.";
-    } else {
-      message =
-          "A skin condition has been detected. Please consult a medical professional for confirmation.";
-    }
 
     final bool isSkinImage = disease != "Not a skin image";
 
@@ -72,6 +100,7 @@ class ResultScreen extends StatelessWidget {
       backgroundColor: Colors.grey.shade100,
       body: Stack(
         children: [
+          /// TOP PURPLE CURVE
           Container(
             height: 240,
             decoration: const BoxDecoration(
@@ -83,12 +112,14 @@ class ResultScreen extends StatelessWidget {
               ),
             ),
           ),
+
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
                   const SizedBox(height: 30),
+
                   const Text(
                     "Diagnosis Result",
                     style: TextStyle(
@@ -97,7 +128,10 @@ class ResultScreen extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
+
                   const SizedBox(height: 30),
+
+                  /// IMAGE
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Image.file(
@@ -107,7 +141,10 @@ class ResultScreen extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
                   ),
+
                   const SizedBox(height: 20),
+
+                  /// DISEASE NAME
                   Text(
                     disease,
                     style: const TextStyle(
@@ -116,27 +153,25 @@ class ResultScreen extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Confidence: ${(confidence * 100).toStringAsFixed(1)}%",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.black87,
-                    ),
-                  ),
+
                   const SizedBox(height: 12),
+
+                  /// DESCRIPTION
                   Text(
-                    message,
+                    getDescription(disease),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
+                      height: 1.5,
                     ),
                   ),
+
+                  /// ERROR MESSAGE
                   if (!isSkinImage)
                     const Padding(
                       padding: EdgeInsets.only(top: 12),
                       child: Text(
-                        "This image does not appear to be a skin condition.\nPlease upload a clear skin image.",
+                        "Please upload a clear skin image.",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.red,
@@ -144,74 +179,78 @@ class ResultScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+
+                  /// BUTTONS (ONLY IF VALID SKIN)
                   if (isSkinImage && disease != "Healthy Skin") ...[
                     const SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.search),
-                        label: const Text("Learn More"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.purple,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          String query = buildSearchQuery(disease);
-                          openSearch(query);
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.medical_services),
-                        label: const Text("Recommended Treatments"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          openTreatment(disease);
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.local_hospital),
-                        label: const Text("Nearby Hospitals"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          openHospitals();
-                        },
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.refresh),
-                      label: const Text("Scan Another Image"),
+
+                    /// Learn More
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.search),
+                      label: const Text("Learn More"),
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.black,
+                        backgroundColor: Colors.purple,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(50),
                       ),
                       onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SkinCaptureScreen(),
-                          ),
-                          (route) => false,
-                        );
+                        openSearch(buildSearchQuery(disease));
                       },
                     ),
+
+                    const SizedBox(height: 12),
+
+                    /// Treatment
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.medical_services),
+                      label: const Text("Recommended Treatments"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(50),
+                      ),
+                      onPressed: () {
+                        openTreatment(disease);
+                      },
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    /// Hospitals
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.local_hospital),
+                      label: const Text("Nearby Hospitals"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(50),
+                      ),
+                      onPressed: () {
+                        openHospitals();
+                      },
+                    ),
+                  ],
+
+                  const SizedBox(height: 20),
+
+                  /// SCAN AGAIN
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Scan Another Image"),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                    ),
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SkinCaptureScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    },
                   ),
+
                   const SizedBox(height: 50),
                 ],
               ),

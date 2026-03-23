@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
-import 'skin_capture_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; // ✅ MUST HAVE
+import 'login_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // ✅ THIS FIXES ERROR
+  );
+
   runApp(const SkinDiseaseApp());
 }
 
@@ -17,7 +24,7 @@ class SkinDiseaseApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
-      home: const SkinCaptureScreen(),
+      home: const LoginScreen(),
     );
   }
 }

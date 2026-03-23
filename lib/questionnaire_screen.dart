@@ -45,6 +45,10 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
 
   int totalQuestions = 0;
 
+  int currentDiseaseIndex = 0;
+
+  List<Map<String, dynamic>> predictions = [];
+
   @override
   void initState() {
     super.initState();
@@ -67,9 +71,28 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
       return;
     }
 
-    updatedConfidence = widget.result['topConfidence'];
+    predictions = widget.result['allPredictions'] ?? [];
+    if (predictions.isEmpty) {
+      // Fallback if no predictions
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ResultScreen(
+              image: widget.image,
+              result: widget.result,
+            ),
+          ),
+        );
+      });
+      return;
+    }
 
-    tree = _getDecisionTree(disease);
+    currentDiseaseIndex = 0;
+    String currentDisease = predictions[currentDiseaseIndex]['label'];
+    updatedConfidence = predictions[currentDiseaseIndex]['confidence'];
+
+    tree = _getDecisionTree(currentDisease);
 
     totalQuestions = tree.length;
   }
@@ -429,6 +452,22 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
       updatedConfidence = updatedConfidence.clamp(0.0, 1.0);
     });
 
+    // Check if confidence dropped below 50% and switch to next disease if available
+    if (updatedConfidence < 0.5 &&
+        currentDiseaseIndex < predictions.length - 1) {
+      setState(() {
+        currentDiseaseIndex++;
+        String newDisease = predictions[currentDiseaseIndex]['label'];
+        updatedConfidence = predictions[currentDiseaseIndex]['confidence'];
+        tree = _getDecisionTree(newDisease);
+        totalQuestions = tree.length;
+        answeredQuestions = 0;
+        currentNodeKey = "q1";
+        answers.clear();
+      });
+      return; // Don't proceed to next question yet
+    }
+
     final nextKey = isYes ? node.yesNext : node.noNext;
 
     if (nextKey == null) {
@@ -441,12 +480,16 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
   }
 
   void _finish() {
+    Map<String, dynamic> finalResult = Map.from(widget.result);
+    finalResult['topLabel'] = predictions[currentDiseaseIndex]['label'];
+    finalResult['topConfidence'] = updatedConfidence;
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => ResultScreen(
           image: widget.image,
-          result: widget.result,
+          result: finalResult,
           answers: answers,
         ),
       ),
@@ -458,6 +501,10 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     final node = tree[currentNodeKey]!;
 
     double progress = (answeredQuestions / totalQuestions).clamp(0.0, 1.0);
+    final topLabel = predictions.isNotEmpty
+        ? predictions[currentDiseaseIndex]['label']
+        : "Unknown";
+    final confidence = (updatedConfidence * 100).toStringAsFixed(1);
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
@@ -468,51 +515,151 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
             width: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF9C27B0), Color(0xFF7B1FA2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF7B1FA2), Color(0xFF512DA8)],
               ),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(100),
+                bottomRight: Radius.circular(40),
               ),
             ),
           ),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 40),
-                  const Text(
-                    "Symptom Confirmation",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios,
+                            color: Colors.white),
+                        onPressed: () => Navigator.of(context).maybePop(),
+                      ),
+                      const Text(
+                        'Questionnaire',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 40),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Predicted: $topLabel',
+                    style: const TextStyle(fontSize: 16, color: Colors.white70),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Confidence: $confidence%',
+                    style: const TextStyle(fontSize: 16, color: Colors.white70),
+                  ),
+                  const SizedBox(height: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 10,
+                      backgroundColor: Colors.white24,
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(Colors.orangeAccent),
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  LinearProgressIndicator(value: progress),
-                  const SizedBox(height: 60),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                  const SizedBox(height: 26),
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Question ${answeredQuestions + 1} of $totalQuestions',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            node.question,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              height: 1.3,
+                            ),
+                          ),
+                          const Spacer(),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _answer(true),
+                                  icon: const Icon(Icons.thumb_up_rounded),
+                                  label: const Text('Yes'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green.shade600,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _answer(false),
+                                  icon: const Icon(Icons.thumb_down_rounded),
+                                  label: const Text('No'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red.shade600,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            node.yesNext == null && node.noNext == null
+                                ? 'Last question. Tap your answer to finish.'
+                                : 'Tap an answer to continue.',
+                            style: TextStyle(
+                                color: Colors.black.withOpacity(0.6),
+                                fontSize: 13),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Text(
-                      node.question,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: () => _answer(true),
-                    child: const Text("Yes"),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () => _answer(false),
-                    child: const Text("No"),
                   ),
                 ],
               ),

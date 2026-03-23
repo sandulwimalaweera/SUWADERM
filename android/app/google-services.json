@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "947319131768",
+    "project_id": "suwaderm",
+    "storage_bucket": "suwaderm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:947319131768:android:8fdddfd250f9b361b3678d",
+        "android_client_info": {
+          "package_name": "com.example.flu2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMOTzX90FiDeqI_kgL79z4MWb2Ojk1bAk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
