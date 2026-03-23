@@ -10,7 +10,7 @@ class AboutUsScreen extends StatelessWidget {
       drawer: _buildDrawer(context),
       body: Stack(
         children: [
-          /// FULL GRADIENT BACKGROUND
+          ///  BACKGROUND
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
