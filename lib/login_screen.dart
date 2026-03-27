@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
-import 'skin_capture_screen.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,36 +15,36 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   void login() async {
-    var user = await _auth.login(
+    String? error = await _auth.login(
       emailController.text,
       passwordController.text,
     );
 
-    if (user != null) {
+    if (error == null) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const SkinCaptureScreen()),
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login Failed")),
+        SnackBar(content: Text("Login Failed: $error")),
       );
     }
   }
 
   void register() async {
-    var user = await _auth.register(
+    String? error = await _auth.register(
       emailController.text,
       passwordController.text,
     );
 
-    if (user != null) {
+    if (error == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Registered Successfully")),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Registration Failed")),
+        SnackBar(content: Text("Registration Failed: $error")),
       );
     }
   }
@@ -78,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    "Skin Disease Identifier",
+                    "SUWADERM",
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,

@@ -4,30 +4,32 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Register
-  Future<User?> register(String email, String password) async {
+  Future<String?> register(String email, String password) async {
     try {
       UserCredential user = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return user.user;
+      return null; // Success, no error
+    } on FirebaseAuthException catch (e) {
+      return e.message; // Return the error message
     } catch (e) {
-      print(e);
-      return null;
+      return 'An unexpected error occurred';
     }
   }
 
   // Login
-  Future<User?> login(String email, String password) async {
+  Future<String?> login(String email, String password) async {
     try {
       UserCredential user = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return user.user;
+      return null; // Success
+    } on FirebaseAuthException catch (e) {
+      return e.message;
     } catch (e) {
-      print(e);
-      return null;
+      return 'An unexpected error occurred';
     }
   }
 

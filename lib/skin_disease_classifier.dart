@@ -13,7 +13,7 @@ class SkinDiseaseClassifier {
     if (_interpreter != null) return;
 
     _interpreter = await Interpreter.fromAsset(
-      'assets/skin_disease_model_9class.tflite',
+      'assets/skin_disease_model_91class.tflite',
       options: InterpreterOptions()..threads = 2,
     );
 
@@ -74,9 +74,18 @@ class SkinDiseaseClassifier {
     /// ============================
     /// NOT-SKIN IMAGE DETECTION
     /// ============================
-    const double threshold = 0.60;
+    const double threshold = 0.70;
 
     if (topConfidence < threshold) {
+      return {
+        'topLabel': 'Not a skin image',
+        'topConfidence': topConfidence,
+        'allPredictions': [],
+      };
+    }
+
+    // If the model explicitly outputs a non-skin label (model update), honor it.
+    if (topLabel.toString().trim().toLowerCase() == 'not a skin image') {
       return {
         'topLabel': 'Not a skin image',
         'topConfidence': topConfidence,

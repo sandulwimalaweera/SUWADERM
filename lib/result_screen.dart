@@ -45,6 +45,9 @@ class ResultScreen extends StatelessWidget {
       case "Healthy Skin":
         return "Your skin appears healthy with no visible signs of common skin diseases.";
 
+      case "Healthy or unclear skin condition":
+        return "Analysis is unclear or indicates healthy-looking skin. If you see no symptoms, try another image or consult a dermatologist for certainty.";
+
       case "Not a skin image":
         return "The uploaded image does not appear to be skin. Please upload a clear skin image.";
 
@@ -150,6 +153,18 @@ class ResultScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// CONFIDENCE
+                  Text(
+                    "Confidence: ${(((result['topConfidence'] as double?) ?? 0.0) * 100).toStringAsFixed(1)}%",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
                     ),
                     textAlign: TextAlign.center,
                   ),

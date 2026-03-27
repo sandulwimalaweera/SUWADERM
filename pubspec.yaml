@@ -42,7 +42,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/skin_disease_model_9class.tflite
+    - assets/skin_disease_model_91class.tflite
     - assets/labels.txt
     - assets/icon.png   # ✅ ADD THIS
 

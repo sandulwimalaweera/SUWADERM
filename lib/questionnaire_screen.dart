@@ -71,9 +71,16 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
       return;
     }
 
-    predictions = widget.result['allPredictions'] ?? [];
+    // Keep only actual skin diseases for questionnaire paths.
+    // Exclude "Healthy Skin" and "Not a skin image" to prevent incorrect redirection.
+    predictions = (widget.result['allPredictions'] as List<dynamic>? ?? [])
+        .cast<Map<String, dynamic>>()
+        .where((p) {
+      final label = (p['label'] as String).trim();
+      return label != "Healthy Skin" && label != "Not a skin image";
+    }).toList();
+
     if (predictions.isEmpty) {
-      // Fallback if no predictions
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
           context,
@@ -481,8 +488,16 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
 
   void _finish() {
     Map<String, dynamic> finalResult = Map.from(widget.result);
-    finalResult['topLabel'] = predictions[currentDiseaseIndex]['label'];
-    finalResult['topConfidence'] = updatedConfidence;
+
+    if (updatedConfidence < 0.70) {
+      finalResult['topLabel'] = 'Not a skin image';
+      finalResult['topConfidence'] = updatedConfidence;
+      finalResult['allPredictions'] = [];
+    } else {
+      finalResult['topLabel'] = predictions[currentDiseaseIndex]['label'];
+      finalResult['topConfidence'] = updatedConfidence;
+      finalResult['allPredictions'] = predictions;
+    }
 
     Navigator.pushReplacement(
       context,
@@ -490,7 +505,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
         builder: (_) => ResultScreen(
           image: widget.image,
           result: finalResult,
-          answers: answers,
+          answers: updatedConfidence < 0.60 ? null : answers,
         ),
       ),
     );

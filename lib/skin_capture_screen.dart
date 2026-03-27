@@ -5,6 +5,9 @@ import 'skin_disease_classifier.dart';
 import 'questionnaire_screen.dart';
 import 'result_screen.dart';
 import 'about_us_screen.dart';
+import 'home_screen.dart';
+import 'tips_screen.dart';
+import 'login_screen.dart';
 
 class SkinCaptureScreen extends StatefulWidget {
   const SkinCaptureScreen({super.key});
@@ -21,7 +24,7 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
   bool _loading = false;
 
   /// Thresholds
-  final double confidenceThreshold = 0.55;
+  final double confidenceThreshold = 0.70;
   final double predictionGapThreshold = 0.10;
 
   @override
@@ -58,13 +61,6 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
 
     double confidence = result['topConfidence'];
 
-    List predictions = result['allPredictions'];
-
-    double secondConfidence =
-        predictions.length > 1 ? predictions[1]['confidence'] : 0.0;
-
-    double gap = confidence - secondConfidence;
-
     /// CASE 1 — Very low confidence
     if (confidence < confidenceThreshold) {
       final notSkinResult = {
@@ -86,12 +82,14 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
       return;
     }
 
-    /// CASE 2 — Model confused (likely healthy skin)
-    if (gap < predictionGapThreshold) {
-      final healthyResult = {
-        'topLabel': 'Healthy or unclear skin condition',
+    final topLabel = (result['topLabel'] as String?).toString().trim();
+
+    if (topLabel.toLowerCase() == 'not a skin image' ||
+        confidence < confidenceThreshold) {
+      final notSkinResult = {
+        'topLabel': 'Not a skin image',
         'topConfidence': confidence,
-        'allPredictions': predictions,
+        'allPredictions': [],
       };
 
       Navigator.push(
@@ -99,15 +97,28 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
         MaterialPageRoute(
           builder: (_) => ResultScreen(
             image: _image!,
-            result: healthyResult,
+            result: notSkinResult,
           ),
         ),
       );
-
       return;
     }
 
-    /// CASE 3 — Real disease prediction
+    if (topLabel.toLowerCase() == 'healthy skin' ||
+        topLabel.toLowerCase() == 'healthy or unclear skin condition') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ResultScreen(
+            image: _image!,
+            result: result,
+          ),
+        ),
+      );
+      return;
+    }
+
+    // CASE 3 — Real disease prediction
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -240,6 +251,43 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
 
                 const SizedBox(height: 50),
 
+                /// GUIDE TEXT
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.lightbulb_outline, color: Color(0xFF7B1FA2)),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            "Tip: Get as close as possible to the affected skin area and ensure good lighting for accurate results.",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
                 /// BUTTONS
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -323,9 +371,32 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
               ),
               const SizedBox(height: 40),
               _drawerItem(
+                icon: Icons.home,
+                title: "Home",
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                    (route) => false,
+                  );
+                },
+              ),
+              _drawerItem(
                 icon: Icons.camera_alt,
                 title: "Scan",
                 onTap: () => Navigator.pop(context),
+              ),
+              _drawerItem(
+                icon: Icons.lightbulb,
+                title: "Health Tips",
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TipsScreen()),
+                  );
+                },
               ),
               _drawerItem(
                 icon: Icons.info_outline,
@@ -343,7 +414,13 @@ class _SkinCaptureScreenState extends State<SkinCaptureScreen> {
               _drawerItem(
                 icon: Icons.logout,
                 title: "Logout",
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                },
               ),
               const SizedBox(height: 20),
             ],

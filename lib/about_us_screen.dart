@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'skin_capture_screen.dart';
+import 'home_screen.dart';
+import 'tips_screen.dart';
+import 'login_screen.dart';
 
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
@@ -242,6 +245,18 @@ class AboutUsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               _drawerItem(
+                icon: Icons.home,
+                title: "Home",
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                    (route) => false,
+                  );
+                },
+              ),
+              _drawerItem(
                 icon: Icons.camera_alt,
                 title: "Scan",
                 onTap: () {
@@ -249,9 +264,19 @@ class AboutUsScreen extends StatelessWidget {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const SkinCaptureScreen(),
-                    ),
+                        builder: (_) => const SkinCaptureScreen()),
                     (route) => false,
+                  );
+                },
+              ),
+              _drawerItem(
+                icon: Icons.lightbulb,
+                title: "Health Tips",
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TipsScreen()),
                   );
                 },
               ),
@@ -268,7 +293,11 @@ class AboutUsScreen extends StatelessWidget {
                 icon: Icons.logout,
                 title: "Logout",
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
                 },
               ),
               const SizedBox(height: 20),
